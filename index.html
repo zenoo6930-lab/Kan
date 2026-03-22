@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>For You 💖</title>
+
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  overflow:hidden;
+  background:#0f2027;
+  color:white;
+  text-align:center;
+}
+
+/* animated stars bg */
+canvas {
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:-1;
+}
+
+/* screens */
+.screen {
+  display:none;
+  height:100vh;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+.active { display:flex; }
+
+/* envelope */
+.envelope {
+  width:260px;
+  height:160px;
+  background:pink;
+  border-radius:15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+/* button */
+button {
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:pink;
+  margin-top:20px;
+}
+
+/* player */
+#player {
+  position:absolute;
+  bottom:20px;
+  font-size:60px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+/* stars */
+.star {
+  position:absolute;
+  font-size:25px;
+}
+
+/* balloons */
+.balloon {
+  position:absolute;
+  bottom:-100px;
+  width:40px;
+  height:60px;
+  border-radius:50%;
+  animation:rise 6s linear infinite;
+}
+@keyframes rise {
+  to { transform: translateY(-120vh); }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- 💌 -->
+<div id="s0" class="screen active">
+  <div class="envelope" onclick="startCountdown()">Tap to Open 💌</div>
+</div>
+
+<!-- ⏳ -->
+<div id="s1" class="screen">
+  <h1 id="count">3</h1>
+  <p>Something special is coming...</p>
+</div>
+
+<!-- ✨ -->
+<div id="s2" class="screen">
+  <p id="text"></p>
+  <button onclick="startGame()">Continue 💖</button>
+</div>
+
+<!-- 🎮 -->
+<div id="s3" class="screen">
+  <h2>Catch 5 Stars ⭐</h2>
+  <p id="score">0/5</p>
+  <div id="player">🧺</div>
+</div>
+
+<!-- 🎆 -->
+<div id="s4" class="screen">
+  <h1>🎉 HAPPY BIRTHDAY 🎂</h1>
+  <p>You make everything brighter ✨</p>
+</div>
+
+<script>
+/* 🌌 background stars */
+let c=document.getElementById("bg");
+let ctx=c.getContext("2d");
+c.width=innerWidth;
+c.height=innerHeight;
+
+let stars=[];
+for(let i=0;i<100;i++){
+  stars.push({x:Math.random()*c.width,y:Math.random()*c.height});
+}
+
+function animate(){
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle="white";
+  stars.forEach(s=>{
+    ctx.fillRect(s.x,s.y,2,2);
+    s.y+=0.3;
+    if(s.y>c.height) s.y=0;
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* screens */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* 💌 start */
+function startCountdown(){
+  show("s1");
+  let count=3;
+
+  let t=setInterval(()=>{
+    count--;
+    document.getElementById("count").innerText=count;
+
+    if(count===0){
+      clearInterval(t);
+      show("s2");
+      typeText();
+    }
+  },1000);
+}
+
+/* typing */
+let msg="You are truly one of a kind 💖";
+let i=0;
+function typeText(){
+  let t=setInterval(()=>{
+    document.getElementById("text").innerHTML+=msg[i];
+    i++;
+    if(i>=msg.length) clearInterval(t);
+  },40);
+}
+
+/* 🎮 GAME (FIXED MOBILE) */
+let score=0;
+function startGame(){
+  show("s3");
+
+  let player=document.getElementById("player");
+
+  document.addEventListener("touchmove",e=>{
+    player.style.left=e.touches[0].clientX+"px";
+  });
+
+  document.addEventListener("mousemove",e=>{
+    player.style.left=e.clientX+"px";
+  });
+
+  let game=setInterval(()=>{
+    let star=document.createElement("div");
+    star.className="star";
+    star.innerHTML="⭐";
+    star.style.left=Math.random()*90+"vw";
+    star.style.top="0px";
+
+    document.body.appendChild(star);
+
+    let fall=setInterval(()=>{
+      star.style.top=(star.offsetTop+4)+"px";
+
+      let s=star.getBoundingClientRect();
+      let p=player.getBoundingClientRect();
+
+      let center=s.left+s.width/2;
+
+      if(s.bottom>=p.top && center>=p.left && center<=p.right){
+        star.remove();
+        score++;
+        document.getElementById("score").innerText=score+"/5";
+
+        if(score===5){
+          clearInterval(game);
+          finalScreen();
+        }
+      }
+    },20);
+
+    setTimeout(()=>{star.remove();clearInterval(fall);},4000);
+
+  },800);
+}
+
+/* 🎆 FINAL */
+function finalScreen(){
+  show("s4");
+
+  for(let i=0;i<30;i++){
+    let b=document.createElement("div");
+    b.className="balloon";
+    b.style.left=Math.random()*100+"vw";
+    b.style.background=["pink","red","yellow","cyan"][Math.floor(Math.random()*4)];
+    document.body.appendChild(b);
+  }
+
+  new Audio("https://www.myinstants.com/media/sounds/tada-fanfare.mp3").play();
+}
+</script>
+
+</body>
+</html>
